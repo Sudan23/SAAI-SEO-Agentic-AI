@@ -1,0 +1,26 @@
+# ─── Go ──────────────────────────────────────────────────────────────────────
+go-version/vendor/
+go-version/*.exe
+go-version/*.test
+go-version/*.out
+go-version/bin/
+
+# ─── Kotlin / Gradle ─────────────────────────────────────────────────────────
+kotlin-version/.gradle/
+kotlin-version/build/
+kotlin-version/.kotlin/
+kotlin-version/out/
+*.class
+*.jar
+*.war
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# ─── Environment / Secrets ───────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
