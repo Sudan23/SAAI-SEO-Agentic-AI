@@ -3,6 +3,10 @@ package ai.saai
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
+import retriever.ExpertStore
+import retriever.Retriever
+import java.io.File
+import java.nio.file.Paths
 
 // ─── Expert Persona Model ────────────────────────────────────────────────────
 
@@ -134,9 +138,36 @@ fun initSystem(modules: List<ExpertPersona>) = runBlocking {
 
 // ─── Entry Point ─────────────────────────────────────────────────────────────
 
+/**
+ * Resolves the /docs/experts directory relative to the project root.
+ * Works whether run via `./gradlew run` or an IDE.
+ */
+private fun docsDir(): File {
+    // Walk up from kotlin-version/ to the repo root
+    val base = File(System.getProperty("user.dir"))
+    val candidate = File(base, "../docs/experts")
+    return candidate.canonicalFile
+}
+
 fun main() {
     printBanner()
     initSystem(ACTIVE_MODULES)
+
+    // ── Expert Knowledge Retriever ────────────────────────────────────────────
+    println("\n📚  Loading Expert Knowledge Retriever...")
+    val store     = ExpertStore(docsDir())
+    val retriever = Retriever(store)
+    println("    Loaded ${store.docs.size} expert docs → ${store.chunks.size} knowledge chunks indexed.")
+
+    // Smoke-test query
+    val smokeQuery = "how to improve topical authority and semantic coverage"
+    println("\n🔍  Smoke-test query: \"$smokeQuery\"")
+    retriever.query(smokeQuery, k = 3).forEachIndexed { i, result ->
+        val preview = result.chunk.text.take(120).let { if (result.chunk.text.length > 120) "$it…" else it }
+        println("    [${i + 1}] (score=%.3f) [${result.chunk.agentId}] $preview".format(result.score))
+    }
+
+    println("\n🚀  SAAI Persona Engine ready. Awaiting task assignment...")
 
     // TODO Day 8: Start Ktor server for API gateway
     // embeddedServer(Netty, port = 8080, module = Application::module).start(wait = true)
